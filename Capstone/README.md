@@ -1,7 +1,7 @@
 # Lab
 
 1.  Clone git repo: `git clone https://github.com/ibm-developer-skills-network/sfvih-Back-end-Development-Capstone.git`
-2.  Get into the directory by `cd sfvih-Back-end-Development-Capstone`
+2.  Get into the directory by `cd Capstone`
 3.  Get into Django code `cd djangoserver`
 4.  Install requirements `pip install -r requirements.txt`
 5.  Run the server `python manage.py runserver`
