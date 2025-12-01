@@ -1,0 +1,84 @@
+
+# Defines the services (containers) that make up your application stack
+services:
+
+  # 1. MONGODB SERVICE (Required by Songs)
+  mongodb:
+    image: mongo:latest
+    container_name: songs-mongodb
+    restart: always
+    # Expose default MongoDB port 27017 to the host
+    ports:
+      - "27017:27017"
+    environment:
+      # The official MongoDB image uses these variables to create the initial root user.
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    # Use a named volume for persistent storage of database data
+    volumes:
+      - mongo_data:/data/db 
+
+  # 2. SONGS SERVICE (Flask/MongoDB)
+  songs:
+    build: 
+      context: ./Songs  # Looks for Dockerfile in the Songs subdirectory
+      dockerfile: Dockerfile
+    container_name: songs-service
+    restart: unless-stopped
+    # Map host port 8001 to the container's application port (which should be 5000/8000)
+    # Using 8000 here, assuming you expose 8000 in the Dockerfile, or it's handled by CMD.
+    # Note: If Flask runs on default 5000, change the internal port to 5000 (e.g., "8001:5000").
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./Songs:/app # Mount source code for development/live reload
+    environment:
+      # Environment variables for the application to connect to MongoDB
+      - MONGODB_USERNAME=root 
+      - MONGODB_PASSWORD=password
+      - MONGODB_SERVICE=songs-mongodb # Service name acts as the hostname in the Docker network
+      - FLASK_APP=app.py # Required by Flask
+    # Ensure MongoDB starts before the Songs service attempts to connect
+    depends_on:
+      - mongodb
+    # The 'command' is overridden by the ENTRYPOINT script in Songs/Dockerfile/entrypoint.sh
+    # CMD in Dockerfile is used here.
+
+  # 3. CAPSTONE SERVICE (Django)
+  capstone:
+    build: 
+      context: ./Capstone
+      dockerfile: Dockerfile
+    container_name: capstone-service
+    restart: unless-stopped
+    # Map host port 8000 (main application access) to the container's Django port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Capstone:/opt/app-root/src
+    environment:
+      # Crucial for Docker: forces Django to listen on all interfaces
+      - DJANGO_HOST=0.0.0.0
+    # Overrides Dockerfile CMD to ensure it runs correctly via the entrypoint script
+    command: python manage.py runserver 0.0.0.0:8000
+
+  # 4. PICTURES SERVICE (Flask)
+  pictures:
+    build: 
+      context: ./Pictures
+      dockerfile: Dockerfile
+    container_name: pictures-service
+    restart: unless-stopped
+    # Map host port 8002 to the container's Flask port 3000 (as defined in its Dockerfile)
+    ports:
+      - "8002:3000"
+    volumes:
+      - ./Pictures:/opt/app-root/src # Uses the unconventional WORKDIR path
+    environment:
+      - FLASK_APP=app
+      - PORT=3000 # Matches the Dockerfile ENV/CMD
+    # command: The CMD in Pictures/Dockerfile will run: ["flask", "run", "--host=0.0.0.0", "--port=3000"]
+
+# Volumes section for persistent data storage
+volumes:
+  mongo_data:

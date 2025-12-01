@@ -1,34 +1,46 @@
-# 1. insert code to python:3.9.16-slim as base image
+# Base Image: Python Slim is a good choice for size and security
 FROM python:3.9.16-slim
 
+# Set up environment variables for non-buffered output, which is good for logging
 ENV PYTHONBUFFERED=1
-ENV PYTHONWRITEBYTECODE=1
 
-RUN apt-get update \
-    && apt-get install -y netcat
+# Set the working directory for the application code inside the container
+WORKDIR /opt/app-root/src
 
-ENV APP=/app
+# Copy requirements and install dependencies
+# We copy this file first to leverage Docker's build cache
+COPY requirements.txt .
 
-# 2. insert code to change the working directory to $APP
-WORKDIR /app
+# Upgrade pip (optional, but recommended to use a recent version)
+RUN pip install --no-cache-dir --upgrade pip
 
-# 3. insert code to copy the requirements.txt file to $APP
-COPY requirements.txt $APP
+# Install dependencies needed for the application
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 4. insert code to install requirements from requirements.txt
-RUN pip install -r requirements.txt
+# Create a non-root group and user with the standard UID 1001.
+# -r creates a system account; -u specifies the UID; -g specifies the primary group.
+# Install 'shadow' package if needed for useradd/groupadd on some distros, 
+# but generally available on Debian-based slim images.
+RUN groupadd -r appuser -g 1001 \
+    && useradd -r -u 1001 -g appuser appuser
 
-# 5. insert code to copy the rest of the files into $APP
-COPY . $APP
+# Ensure the working directory is owned by the new non-root user
+WORKDIR /opt/app-root/src
+RUN chown -R appuser:appuser /opt/app-root/src
 
-# 6. insert code to expose the port here
-EXPOSE 8000
+# Copy the rest of the application source code into the working directory
+COPY . .
 
-# 7. Make entrypoint.sh executable
-RUN chmod +x /app/entrypoint.sh
+# Security measure: Drop root privileges for the running application
+# Switch to the named user instead of the raw UID for better readability
+USER appuser
 
-# 8. Set the entrypoint to entrypoint.sh
-ENTRYPOINT ["/bin/bash","/app/entrypoint.sh"]
+# Documentation only: Indicates that the container listens on this port
+EXPOSE 3000
 
-# 9. insert code to set the run command to "python manage.py runserver 0.0.0.0:8000"
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Application configuration (Flask specific environment variables)
+ENV FLASK_APP=app
+
+# Default command to run the Flask application
+# This is usually overridden by the 'command:' instruction in docker-compose.yml
+CMD ["flask", "run", "--host=0.0.0.0", "--port=3000"]

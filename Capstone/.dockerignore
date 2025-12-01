@@ -1,0 +1,10 @@
+# Ignore the local Python virtual environment
+venv/
+
+# Ignore built python files
+__pycache__/
+*/__pycache__/
+
+# Ignore database files/folders if they exist
+db.sqlite3
+

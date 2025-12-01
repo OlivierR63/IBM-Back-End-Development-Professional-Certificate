@@ -1,78 +1,78 @@
-# IBM Back-End Development Professional Certificate
+This repository contains the source code and configuration for the Capstone project, implementing a microservices architecture for a concert management application, orchestrated using **Docker Compose**.
 
-This repository consolidates three projects developed as part of the IBM Back-End Development Professional Certificate. Each project demonstrates different aspects of back-end development using various technologies and frameworks.
+## Architecture Overview
 
-## Projects Overview
+The application is composed of three main microservices that communicate over a dedicated Docker network:
 
-### Back-End Development Songs API
+| Service | Technology | Role | Internal URL (Endpoint Example) |
+| :--- | :--- | :--- | :--- |
+| **Capstone** | **Django (Python)** | Main application, frontend, user authentication, and data persistence (SQLite). | N/A (Main Service) |
+| **Pictures** | **Flask (Python)** | Provides image data. | `http://pictures:3000/picture` |
+| **Songs** | **Node.js (Express)** | Provides song metadata. | `http://songs:8000/song` |
 
-A RESTful API built with **Flask** for managing a collection of songs, with data stored in a **MongoDB** database. This project provides endpoints for common CRUD operations and includes features such as:
+## Prerequisites
 
-- **RESTful Endpoints**: Standard CRUD operations for songs.
-- **MongoDB Integration**: Persistent storage for song data.
-- **Error Handling**: Robust error responses for invalid requests.
-- **Health Check**: Endpoint to monitor the API's operational status.
-- **Unit/Integration Tests**: Comprehensive test suite using Pytest.
+You must have the following installed and configured on your machine to run the project:
 
-**Technologies Used**: Python 3.x, Flask, PyMongo, MongoDB, Pytest.
+* **Docker**
+* **Docker Compose** (or Docker v24+ which integrates it via `docker compose`)
 
-### Back-End Development Pictures
+---
 
-This project focuses on managing and displaying pictures. It integrates with a back-end service to retrieve and manage picture data.
+## I. Quick Start: Launching the Application
 
-### Back-End Development Capstone
+These commands are executed from this repository's root directory (`IBM-Back-End-Development-Professional-Certificate/`).
 
-A Django-based application showcasing the integration of various back-end components, including user authentication, database management, and REST API consumption. Key features include:
+### 1. Start the Architecture
 
-- **Django Framework**: Utilized for building the web application.
-- **Database Migrations**: Handling schema changes and database setup.
-- **Admin Interface**: Automatic admin interface for managing content.
-- **Containerization**: Docker support for easy deployment and scaling.
+This command builds the images, sets up the network, and starts all services in the background (`-d`).
 
-**Technologies Used**: Python, Django, SQLite/MySQL, Docker.
+```bash
+docker compose up -d --build
+```
 
-## Getting Started
+### 2. Initialize the Database and Fix Permissions
 
-### Prerequisites
+Before running the application, you must apply migrations and correct file permissions on the SQLite database used by Django.
 
-- **Python 3.8+**
-- **pip** (Python package installer)
-- **MongoDB Community Server** (for the Songs API)
-- **Docker** (for containerization of the Capstone project)
+| Command | Purpose |
+| :--- | :--- |
+| `docker compose exec capstone python manage.py migrate` | Applies Django migrations and creates the database schema. |
+| `docker compose exec -u root capstone chown appuser:appuser /opt/app-root/src/db.sqlite3` | **CRITICAL:** Fixes the 'readonly database' error by giving ownership to the application user (`appuser`). |
+| `docker compose exec capstone python manage.py createsuperuser` | Creates an admin user for the Django panel. |
 
-### Installation and Running the Applications
+### 3. Access the Application
 
-#### Songs API
+The main application is exposed on port `8000`.
 
-1. Clone the repository and navigate to the Songs directory.
-2. Set up a virtual environment and install dependencies.
-3. Configure environment variables for MongoDB and run the Flask application.
+* **Main Application:** `http://localhost:8000/`
+* **Admin Panel:** `http://localhost:8000/admin/` (Use the superuser created above)
 
-#### Capstone Project
 
-1. Clone the repository and navigate to the Capstone directory.
-2. Install the required packages using `pip install -r requirements.txt`.
-3. Apply database migrations and run the Django server.
-4. Access the application and admin interface via the provided URLs.
+---
 
-## API Endpoints and Features
+## II. Development and Maintenance
 
-- **Songs API**: Offers endpoints for managing songs, including health checks, song retrieval, creation, updates, and deletion.
-- **Capstone Project**: Features user authentication, concert management, and integration with external APIs for dynamic content.
+### 1. Check Service Status
 
-## Running Tests
+View the status and health of all running containers:
 
-Each project includes a suite of tests to ensure functionality and reliability. Navigate to the respective project directory and run the tests using `pytest` or Django's test runner.
+```bash
+docker compose ps
+```
 
-## Contributing
+### 2. Stop and Cleanup
 
-Contributions to these projects are welcome. Please follow these steps:
+| Command | Purpose |
+| :--- | :--- |
+| `docker compose stop` | Stops the running containers but preserves their state (and volumes). |
+| `docker compose down` | Stops containers and removes containers and networks. |
+| `docker compose down -v` | **Full Cleanup:** Stops containers, removes containers, networks, and all **volumes** (including MongoDB data). |
 
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Commit your changes and push to your fork.
-4. Open a Pull Request to the main repository.
+### 3. Debugging (Accessing the Capstone Container)
 
-## License
+To run specific Django commands or debug inside the main application container:
 
-This project is licensed under the terms of the MIT license.
+```bash
+docker compose exec capstone bash
+```

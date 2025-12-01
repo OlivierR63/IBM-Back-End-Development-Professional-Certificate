@@ -1,126 +1,63 @@
-# Back-End Development Songs API
+# Songs Service - Flask API with MongoDB
 
-## Project Overview
+This directory contains the source code for the **Songs microservice**, built using **Flask (Python)**.
 
-This project is a RESTful API built with **Flask** for managing a collection of songs, with data stored in a **MongoDB** database. It provides endpoints for common operations such as retrieving all songs, getting a song by ID, adding new songs, updating existing ones, and deleting them.
+This service implements a full **RESTful API** for managing song data, with persistent storage provided by the **MongoDB** database. It is designed to run within the Docker Compose environment.
 
-## Features
+## I. Service Details
 
-* **RESTful Endpoints**: Standard CRUD operations (Create, Read, Update, Delete) for songs.
-* **MongoDB Integration**: Persistent storage for song data.
-* **ID-based Management**: Songs are managed using a unique numerical ID.
-* **Error Handling**: Robust error responses for invalid requests (e.g., malformed IDs, non-existent resources).
-* **Health Check**: An endpoint to monitor the API's operational status.
-* **Unit/Integration Tests**: Comprehensive test suite using Pytest to ensure API reliability.
+### 1. Technology and Endpoints
 
-## Technologies Used
+* **Framework:** Flask (Python)
+* **Database:** MongoDB
+* **Internal Endpoint:** `http://songs:8000/song`
+* **Internal Port:** 8000
 
-* **Python 3.x**
-* **Flask**: Web framework for building the API.
-* **PyMongo**: Python driver for MongoDB.
-* **MongoDB**: NoSQL database for data storage.
-* **Pytest**: Testing framework.
-* **python-dotenv**: For managing environment variables. (If you use it for DB connection strings, etc.)
-* **Gunicorn / Waitress**: (Mention if you plan to use a WSGI server for deployment)
+### 2. Development Commands
 
-## Getting Started
+These commands are executed inside the container and assume your entire Docker Compose environment is running (via `docker compose up -d` executed from the project root).
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+#### Access the Container Shell
 
-### Prerequisites
+To execute Python commands or debug directly within the Songs container:
 
-Before you begin, ensure you have the following installed:
-* **Python 3.8+**
-* **pip** (Python package installer)
-* **MongoDB Community Server** (running locally or accessible remotely)
+```bash
+docker compose exec songs bash
+```
 
-### Installation
+#### Afficher les journaux de l'application
 
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/YourUsername/Back-End-Development-Songs.git](https://github.com/YourUsername/Back-End-Development-Songs.git)
-    cd Back-End-Development-Songs
-    ```
+Pour diffuser en continu la sortie (journaux) du serveur Flask :
 
-2.  **Create a virtual environment an install the dependancies:**
-    ```bash 
-    ./bin/setup.sh
-    exit
-    ```
+```bash
+docker compose logs -f songs
+```
 
-3.  **Start the MongoDB server:**
-    Retrieve the user name, the mongoDB hostname and the password
+### Exécuter les tests
+Pour lancer les tests automatisés avec Pytest (en supposant que les dépendances soient installées dans le conteneur) :
 
-### Running the Application
+```bash
+docker compose exec songs pytest
+```
 
-1.  **Open a new terminal window, configure 3 Environment Variables and run the Flask application:**
-    ```bash 
-    cd Back-End-Development-Songs
-    export MONGODB_USERNAME = 'root'
-    export MONGODB_PASSWORD = password
-    export MONGODB_SERVICE = MongoDB hostname ( It looks like an IP adress)
-    flask run --reload --debugger
-    ```
+## II. API Endpoints Reference
 
-2.  **Keep this terminal as is and open a second terminal**
-    ```bash
-    cd Back-End-Development-Songs
-    export MONGODB_USERNAME = 'root'
-    export MONGODB_PASSWORD = password
-    export MONGODB_SERVICE = MongoDB hostname ( It looks like an IP adress)
-    ```
-    In order to test the /health endpoint, launch the command below:
-    ```bash
-    curl -X GET -i -w '\n' localhost:5000/health
-    ```
+The main application (Capstone) accesses these endpoints via the internal service name `songs:8000`.
 
-    For testing the /count endpoint : 
-    ```bash
-    curl -X GET -i -w '\n' localhost:5000/count
-    ```
-    And so on ...
-    
-## API Endpoints
+| Method | Endpoint | Description |
+| :----- | :------- | :---------- |
+| `GET` | `/health` | Checks the health status of the API. |
+| `GET` | `/count` | Gets the total number of songs in the database. |
+| `GET` | `/song` | Retrieves all songs. |
+| `GET` | `/song/{id_str}` | Retrieves a specific song by its numerical ID. |
+| `POST` | `/song` | Creates a new song. |
+| `PUT` | `/song/{id_str}` | Updates an existing song by its ID. |
+| `DELETE` | `/song/{id_str}` | Deletes a song by its ID. |
 
-Here's a summary of the available API endpoints:
 
-| Method | Endpoint              | Description                                        | Request Body (JSON)                                    | Response (JSON)                                                                                                    |
-| :----- | :-------------------- | :------------------------------------------------- | :----------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/health`             | Checks the health status of the API.               | None                                                   | `{"status": "OK"}` (200)                                                                                           |
-| `GET`  | `/count`              | Gets the total number of songs.                    | None                                                   | `{"count": <number_of_songs>}` (200)                                                                               |
-| `GET`  | `/song`               | Retrieves all songs.                               | None                                                   | `{"songs": [...]}` (200)                                                                                           |
-| `GET`  | `/song/{id_str}`      | Retrieves a specific song by its numerical ID.     | None                                                   | `{"id": ..., "title": ..., ...}` (200) or `{"message": "ERROR: song not found"}` (404)                             |
-| `POST` | `/song`               | Creates a new song.                                | `{"id": <int>, "title": <str>, "artist": <str>, ...}`  | `{"inserted_id": "..."}` (201) or `{"message": "song with id X already present"}` (302) or `{"message": "ERROR: Invalid ID"}` (400) |
-| `PUT`  | `/song/{id_str}`      | Updates an existing song by its ID.                | `{"title": <str>, "artist": <str>, ...}`               | `{"id": ..., "title": ..., ...}` (201) or `{"message": "Song not found"}` (404) or `{"message": "Song found, but nothing updated"}` (200) |
-| `DELETE` | `/song/{id_str}`    | Deletes a song by its ID.                          | None                                                   | (204 No Content) or `{"message": "Song not found"}` (404) or `{"message": "ERROR: Invalid ID"}` (400)             |
+## III. Code Structure
 
-*(Replace `{id_str}` with the actual song ID, e.g., `/song/1`)*
-
-## Running Tests
-
-To run the automated tests for the API:
-
-1.  **Ensure your virtual environment is active.**
-2.  **Navigate to the `Back-End-Development-Songs` directory:**
-    ```bash
-    cd Back-End-Development-Songs
-    ```
-3.  **Run Pytest:**
-    ```bash
-    pytest
-    ```
-    Or to run a specific test:
-    ```bash
-    pytest -k 'test_health'
-    ```
-
-## Contributing
-
-(Optional section)
-If you wish to contribute to this project, please follow these steps:
-1.  Fork the repository.
-2.  Create a new branch (`git checkout -b feature/your-feature-name`).
-3.  Make your changes.
-4.  Commit your changes (`git commit -m 'Add new feature'`).
-5.  Push to the branch (`git push origin feature/your-feature-name`).
-6.  Open a Pull Request.
+* **`app.py`**: The main entry point for the Flask application.
+* **`backend/routes.py`**: Defines all API routes and the CRUD logic using PyMongo to interact with MongoDB.
+* **`entrypoint.sh`**: Ensures MongoDB is available before launching the Flask server.
+* **`Dockerfile`**: Defines the container environment and dependencies.
