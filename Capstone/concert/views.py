@@ -39,11 +39,6 @@ def index(request):
 
 def songs(request):
     # Define the URL for fetching songs data
-    #song_url = (
-    #    "http://songs-sn-labs-olivierrocha."
-    #    "labs-prod-openshift-san-a45631dc5778dc6371c67d206ba9ae5c-0000."
-    #    "us-east.containers.appdomain.cloud/song"
-    #)
     song_url = "http://songs:8000/song"
 
     try:
@@ -70,11 +65,7 @@ def songs(request):
 
 
 def photos(request):
-     #picture_url = (
-         #"https://pictures.1ycjctbe2cvb.us-south."
-         #"codeengine.appdomain.cloud/picture"
-     #)
-    picture_url = "http://pictures:3000/picture" 
+    picture_url = "http://pictures:3000/picture"
 
     photos = req.get(picture_url).json()
     return render(request, "photos.html", {"photos": photos})

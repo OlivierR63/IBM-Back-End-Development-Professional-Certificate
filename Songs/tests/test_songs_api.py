@@ -83,6 +83,7 @@ def test_collection(test_db):
 
 # --- Test Application Fixture ---
 
+
 @pytest.fixture(scope="module")
 def app(test_db):   # The 'app' fixture depends on the 'test_db' fixture
     """
