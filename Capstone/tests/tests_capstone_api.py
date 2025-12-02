@@ -33,9 +33,10 @@ class SongViewTest(TestCase):
 
     @patch('requests.get')
     def test_songs_view_renders_correctly_with_data(
-                                                    self: 'SongViewTest',
-                                                    mock_get: MagicMock
-                                                    ) -> None:
+        self: 'SongViewTest',
+        mock_get: MagicMock
+    ) -> None:
+
         # 1. Define the expected static data (the list of songs):
         expected_songs_list = [{
             "id": 1,
@@ -89,7 +90,10 @@ class PhotosViewTest(TestCase):
     # The mocked function is passed as an argument (mock_get)
 
     @patch('requests.get')
-    def test_photos_view_renders_correctly_with_data(self: 'PhotosViewTest', mock_get: MagicMock) -> None:
+    def test_photos_view_renders_correctly_with_data(
+                                                        self: 'PhotosViewTest',
+                                                        mock_get: MagicMock
+                                                     ) -> None:
 
         # 1. Define the expected static data that the view should pass.
         expected_photos_data = [{

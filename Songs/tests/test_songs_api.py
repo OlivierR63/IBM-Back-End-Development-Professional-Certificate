@@ -268,14 +268,14 @@ def test_update_song_invalid_id(client):
 def test_delete_song_success(client, test_collection):
     # Creates a song to be deleted for this specific test
     temp_song_id = 100
-    client.post('/song',
-                json={
-                        "id": temp_song_id,
-                        "title": "Temp Delete",
-                        "artist": "Temp",
-                        "lyrics": "Temp"
-                      }
-                )
+    client.post(
+        '/song',
+        json={
+               "id": temp_song_id,
+               "title": "Temp Delete",
+               "artist": "Temp",
+               "lyrics": "Temp"
+    })
 
     res = client.delete(f'/song/{temp_song_id}')
     assert res.status_code == 204
