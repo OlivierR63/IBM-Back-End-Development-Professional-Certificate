@@ -182,9 +182,9 @@ def register_routes(app_instance: Flask):
 
         # Updates the song
         result = current_app.db.songs.update_one(
-                    {'id': id},
-                    {'$set': {key: json_data[key] for key in json_data.keys()}}
-                )
+            {'id': id},
+            {'$set': {key: json_data[key] for key in json_data.keys()}}
+        )
 
         status_code: int = 200
         if result.modified_count == 0:

@@ -32,17 +32,20 @@ class SongViewTest(TestCase):
     #  template and passes the expected song data to the template context.
 
     @patch('requests.get')
-    def test_songs_view_renders_correctly_with_data(self: 'SongViewTest', mock_get: MagicMock) -> None:
+    def test_songs_view_renders_correctly_with_data(
+                                                    self: 'SongViewTest',
+                                                    mock_get: MagicMock
+                                                    ) -> None:
         # 1. Define the expected static data (the list of songs):
         expected_songs_list = [{
-                    "id": 1,
-                    "title": "duis faucibus accumsan odio curabitur convallis",
-                    "lyrics": ("Morbi non lectus. Aliquam sit "
-                               "amet diam in magna bibendum "
-                               "imperdiet. Nullam orci pede, "
-                               "venenatis non, sodales sed, "
-                               "tincidunt eu, felis.")
-                            }]
+            "id": 1,
+            "title": "duis faucibus accumsan odio curabitur convallis",
+            "lyrics": ("Morbi non lectus. Aliquam sit "
+                       "amet diam in magna bibendum "
+                       "imperdiet. Nullam orci pede, "
+                       "venenatis non, sodales sed, "
+                       "tincidunt eu, felis.")
+        }]
 
         # 2. Configure the Mock:
         # The mock_.get call simulates the request function

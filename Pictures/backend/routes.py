@@ -115,10 +115,10 @@ def create_picture():
     # Return a success response with the new picture data
     msg_str = "Picture added successfully"
     return jsonify({
-                        "Message": msg_str,
-                        "picture": new_picture,
-                        'id': new_picture['id']
-                    }), 201
+        "Message": msg_str,
+        "picture": new_picture,
+        'id': new_picture['id']
+    }), 201
 
 
 ######################################################################
@@ -163,17 +163,17 @@ def update_picture(id):
 
             msg_str = "Picture updated successfully"
             return jsonify({
-                                "Message": msg_str,
-                                "picture": picture,
-                                'id': id
-                            }), 200
-    else:
-        msg_str = f"Picture whose id is {id} not found"
-        return jsonify({
-                            "Message": msg_str,
-                            "picture": request_picture,
-                            'id': id
-                        }), 404
+                "Message": msg_str,
+                "picture": picture,
+                'id': id
+            }), 200
+        else:
+            msg_str = f"Picture whose id is {id} not found"
+            return jsonify({
+                "Message": msg_str,
+                "picture": request_picture,
+                'id': id
+            }), 404
 
 
 ######################################################################

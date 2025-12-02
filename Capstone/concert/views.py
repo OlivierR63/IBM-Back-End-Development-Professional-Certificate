@@ -126,15 +126,15 @@ def concert_detail(request, id):
         except AttributeError:
             status = "-"
         return render(
-                        request,
-                        "concert_detail.html",
-                        {
-                            "concert_details": obj,
-                            "status": status,
-                            "attending_choices":
-                            ConcertAttending.AttendingChoices.choices
-                        }
-                    )
+            request,
+            "concert_detail.html",
+            {
+                "concert_details": obj,
+                "status": status,
+                "attending_choices":
+                ConcertAttending.AttendingChoices.choices
+            }
+        )
     else:
         return HttpResponseRedirect(reverse("login"))
 
