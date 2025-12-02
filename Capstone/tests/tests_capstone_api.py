@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from concert.models import Concert, ConcertAttending
 from concert.forms import LoginForm
 from datetime import date
+from unittest.mock import patch, MagicMock
 
 
 # Checks that the "index" view uses the right template
@@ -11,7 +12,7 @@ from datetime import date
 class IndexViewTest(TestCase):
     # This test ensures that the index view is accessible
     # and renders the correct template.
-    def test_index_view_renders_correctly(self):
+    def test_index_view_renders_correctly(self: 'IndexViewTest') -> None:
         # Simulate a GET request to the 'index' URL.
         response = self.client.get(reverse('index'))
 
@@ -29,18 +30,11 @@ class IndexViewTest(TestCase):
 class SongViewTest(TestCase):
     # This test ensures the songs view is accessible, renders the correct
     #  template and passes the expected song data to the template context.
-    def test_songs_view_renders_correctly_with_data(self):
-        # Simulate a GET request to the 'songs' URL.
-        response = self.client.get(reverse('songs'))
 
-        # Assert that the HTTP status code is 200 (OK).
-        self.assertEqual(response.status_code, 200)
-
-        # Assert that the 'songs.html' template was used.
-        self.assertTemplateUsed(response, 'songs.html')
-
-        # Define the expected static data that the view should pass.
-        expected_songs_data = [{
+    @patch('requests.get')
+    def test_songs_view_renders_correctly_with_data(self: 'SongViewTest', mock_get: MagicMock) -> None:
+        # 1. Define the expected static data (the list of songs):
+        expected_songs_list = [{
                     "id": 1,
                     "title": "duis faucibus accumsan odio curabitur convallis",
                     "lyrics": ("Morbi non lectus. Aliquam sit "
@@ -50,12 +44,24 @@ class SongViewTest(TestCase):
                                "tincidunt eu, felis.")
                             }]
 
+        # 2. Configure the Mock:
+        # The mock_.get call simulates the request function
+        mock_response = mock_get.return_value
+
+        # The returned object must have a .json() method that returns our expected data
+        mock_response.json.return_value = {"songs": expected_songs_list}
+
+        # Simulate a GET request to the 'songs' URL
+        # This call will now use the MOCKED requests.get function.
+        response = self.client.get(reverse('songs'))
+
+        # 3. Perform assertions to verify the behavior of the view.
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'songs.html')
+
         # Assert that the 'songs' key is present in the template context.
         self.assertIn('songs', response.context)
-
-        # Assert that the data passed under the 'songs' key
-        # matches the expected data.
-        self.assertEqual(response.context['songs'], expected_songs_data)
+        self.assertEqual(response.context['songs'], expected_songs_list)
 
         # Assert that specific content from the song data is present
         # in the HTML response. This helps verify that the data is correctly
@@ -70,20 +76,19 @@ class SongViewTest(TestCase):
 
 # Checks that the "photos" view uses the right template,
 # returns the status code 200 and passes data
+
 class PhotosViewTest(TestCase):
     # This test ensures the photos view is accessible, renders the correct
     # template and passes the expected photo data to the template context.
-    def test_photos_view_renders_correctly_with_data(self):
-        # Simulate a GET request to the 'photos' URL.
-        response = self.client.get(reverse('photos'))
 
-        # Assert that the HTTP status code is 200 (OK).
-        self.assertEqual(response.status_code, 200)
+    # This test uses mocking to simulate the external API call :
+    # Uses @patch to simulate the 'request.get' calL within the photos view.
+    # The mocked function is passed as an argument (mock_get) 
 
-        # Assert that the 'photos.html' template was used.
-        self.assertTemplateUsed(response, 'photos.html')
-
-        # Define the expected static data that the view should pass.
+    @patch('requests.get')
+    def test_photos_view_renders_correctly_with_data(self: 'PhotosViewTest', mock_get: MagicMock) -> None:
+        
+        # 1. Define the expected static data that the view should pass.
         expected_photos_data = [{
             "id": 1,
             "pic_url": "http://dummyimage.com/136x100.png/5fa2dd/ffffff",
@@ -93,7 +98,19 @@ class PhotosViewTest(TestCase):
             "event_date": "11/16/2022"
         }]
 
-        # Assert that the 'photos' list is present in the template context.
+        # 2. Configure the mock :
+        # The request.get call (mock_get) must return an object
+        mock_response = mock_get.return_value
+
+        # The returned object must have a .json() method that returns our expected data
+        mock_response.json.return_value = expected_photos_data
+
+        # 3. Simulate a GET request to the 'photos' URL.
+        response = self.client.get(reverse('photos'))
+        
+        # 4. Perform assertions to verify the behavior of the view.
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'photos.html')
         self.assertIn('photos', response.context)
 
         # Assert that the 'photos' list contains the expected data.
@@ -111,13 +128,13 @@ class PhotosViewTest(TestCase):
 # Checks that the "login" view uses the right template
 # and handles authentication scenarios
 class LoginViewTest(TestCase):
-    def setUp(self):
+    def setUp(self: 'LoginViewTest') -> None:
         # Create a user for successful login tests
         self.user = User.objects.create_user(username='testuser',
                                              password='testpassword123')
 
     # Tests the initial display of the login form (GET request)
-    def test_login_view_get(self):
+    def test_login_view_get(self: 'LoginViewTest') -> None:
         response = self.client.get(reverse('login'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'login.html')
@@ -127,7 +144,7 @@ class LoginViewTest(TestCase):
         self.assertIsInstance(response.context['form'], LoginForm)
 
     # Tests successful login with correct credentials (POST request)
-    def test_login_view_post_success(self):
+    def test_login_view_post_success(self: 'LoginViewTest') -> None:
         response = self.client.post(reverse('login'), {
             'username': 'testuser',
             'password': 'testpassword123'
@@ -143,7 +160,7 @@ class LoginViewTest(TestCase):
                          str(self.user.pk))
 
     # Tests failed login with incorrect password (POST request)
-    def test_login_view_post_incorrect_password(self):
+    def test_login_view_post_incorrect_password(self: 'LoginViewTest') -> None:
         response = self.client.post(reverse('login'), {
             'username': 'testuser',
             'password': 'wrongpassword'
@@ -164,7 +181,7 @@ class LoginViewTest(TestCase):
         self.assertFalse('_auth_user_id' in self.client.session)
 
     # Tests failed login with a non-existent username (POST request)
-    def test_login_view_post_non_existent_user(self):
+    def test_login_view_post_non_existent_user(self: 'LoginViewTest') -> None:
         response = self.client.post(reverse('login'), {
             'username': 'nonexistentuser',
             'password': 'anypassword'
@@ -190,7 +207,7 @@ class LoginViewTest(TestCase):
 # Checks that the "logout" view redirects to the login page
 # and logs out the user
 class LogoutViewTest(TestCase):
-    def setUp(self):
+    def setUp(self: 'LogoutViewTest') -> None:
         # Create and log in a user before each test
         # that requires an authenticated user.
         self.user = User.objects.create_user(username='testuser',
@@ -202,7 +219,7 @@ class LogoutViewTest(TestCase):
 
     # This test ensures that the logout view successfully logs out the user
     # and redirects them to the login page.
-    def test_logout_view_redirects_to_login(self):
+    def test_logout_view_redirects_to_login(self: 'LogoutViewTest') -> None:
         # Simulate a GET request to the 'logout' URL.
         response = self.client.get(reverse('logout'))
 
@@ -224,7 +241,8 @@ class SignupViewTest(TestCase):
     # This test ensures that the signup view is accessible
     # and renders the correct form
     # when accessed via a GET request.
-    def test_signup_view_get(self):
+
+    def test_signup_view_get(self: 'SignupViewTest') -> None:
         # Simulate a GET request to the 'signup' URL.
         response = self.client.get(reverse('signup'))
 
@@ -239,7 +257,7 @@ class SignupViewTest(TestCase):
 
     # This test covers the successful creation of a new user
     # through a valid POST request.
-    def test_signup_view_post_new_user(self):
+    def test_signup_view_post_new_user(self: 'SignupViewTest') -> None:
         # Initial check: Ensure no users exist in the database
         # before this test runs.
         self.assertEqual(User.objects.count(), 0)
@@ -271,7 +289,7 @@ class SignupViewTest(TestCase):
 
     # This test covers the scenario where a user tries to sign up
     # with an existing username.
-    def test_signup_view_post_user_exists(self):
+    def test_signup_view_post_user_exists(self: 'SignupViewTest') -> None:
         # Create an existing user to simulate a conflict.
         User.objects.create_user(username='existinguser',
                                  password='oldpassword')
@@ -306,7 +324,7 @@ class SignupViewTest(TestCase):
 # Checks that the "concerts" view requires login
 # and correctly displays data when logged in
 class ConcertsViewTest(TestCase):
-    def setUp(self):
+    def setUp(self: 'ConcertsViewTest') -> None:
         # Create a test user for login scenarios.
         self.user = User.objects.create_user(username='testuser',
                                              password='testpassword')
@@ -335,7 +353,7 @@ class ConcertsViewTest(TestCase):
     # This test ensures that an unauthenticated user attempting
     # to access the concerts view
     # is redirected to the login page.
-    def test_concerts_view_unauthenticated_redirects(self):
+    def test_concerts_view_unauthenticated_redirects(self: 'ConcertsViewTest') -> None:
         # Simulate a GET request to the 'concerts' URL without logging in.
         response = self.client.get(reverse('concerts'))
 
@@ -349,7 +367,7 @@ class ConcertsViewTest(TestCase):
     # This test ensures that an authenticated user can access
     # the concert view, that the correct template is used, and that
     # the concert data is passed correctly.
-    def test_concerts_view_authenticated_renders_with_data(self):
+    def test_concerts_view_authenticated_renders_with_data(self: 'ConcertsViewTest') -> None:
         # Log in the test user before making the request.
         self.client.force_login(self.user)
 
