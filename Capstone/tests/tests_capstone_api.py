@@ -83,11 +83,11 @@ class PhotosViewTest(TestCase):
 
     # This test uses mocking to simulate the external API call :
     # Uses @patch to simulate the 'request.get' calL within the photos view.
-    # The mocked function is passed as an argument (mock_get) 
+    # The mocked function is passed as an argument (mock_get)
 
     @patch('requests.get')
     def test_photos_view_renders_correctly_with_data(self: 'PhotosViewTest', mock_get: MagicMock) -> None:
-        
+    
         # 1. Define the expected static data that the view should pass.
         expected_photos_data = [{
             "id": 1,
@@ -107,7 +107,7 @@ class PhotosViewTest(TestCase):
 
         # 3. Simulate a GET request to the 'photos' URL.
         response = self.client.get(reverse('photos'))
-        
+
         # 4. Perform assertions to verify the behavior of the view.
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'photos.html')
